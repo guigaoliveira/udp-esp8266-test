@@ -8,14 +8,6 @@ const PaperStyle = {
   padding: '20px 40px',
 }
 
-const addAxisData = (dataAxis, windowData, windowSize) =>
-  [].concat(
-    dataAxis.length > windowSize
-      ? dataAxis.filter((_, index) => index > windowData.length)
-      : dataAxis,
-    windowData,
-  )
-
 class Chart extends React.Component {
   constructor(props) {
     super(props)
