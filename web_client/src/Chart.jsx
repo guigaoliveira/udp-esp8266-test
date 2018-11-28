@@ -9,23 +9,32 @@ const PaperStyle = {
 }
 
 const WS_URL = 'ws://localhost:8000'
-const WINDOW_SIZE = 500
 
+const addAxisData = (dataAxis, windowData, windowSize) =>
+  [].concat(
+    dataAxis.length > windowSize
+      ? dataAxis.filter((_, index) => index > windowData.length)
+      : dataAxis,
+    windowData,
+  )
 class Chart extends React.Component {
-  state = {
-    data: {
-      x: [],
-      y: [],
-    },
-    windowDataY: [],
-    windowDataX: [],
-    newData: 0,
+  constructor(props) {
+    super(props)
+    this.state = {
+      data: {
+        x: [],
+        y: [],
+      },
+      windowDataY: [],
+      windowDataX: [],
+      newData: 0,
+    }
   }
 
   ws = new WebSocket(WS_URL)
 
   componentDidMount() {
-    setInterval(() => this.state.newData && this.addDataToPlot(), WINDOW_SIZE)
+    setInterval(() => this.state.newData && this.addDataToPlot(), this.props.windowSize)
     this.ws.onopen = () => {
       console.log('connected')
     }
@@ -57,18 +66,8 @@ class Chart extends React.Component {
       windowDataY: [],
       newData: 0,
       data: {
-        x: [].concat(
-          prevState.data.x.length > WINDOW_SIZE
-            ? prevState.data.x.filter((_, index) => index > prevState.windowDataX.length)
-            : prevState.data.x,
-          prevState.windowDataX,
-        ),
-        y: [].concat(
-          prevState.data.y.length > WINDOW_SIZE
-            ? prevState.data.y.filter((_, index) => index > prevState.windowDataX.length)
-            : prevState.data.y,
-          prevState.windowDataY,
-        ),
+        x: addAxisData(prevState.data.x, prevState.windowDataY, this.props.windowSize),
+        y: addAxisData(prevState.data.y, prevState.windowDataY, this.props.windowSize),
       },
     }))
 
@@ -82,7 +81,7 @@ class Chart extends React.Component {
           data={[
             {
               ...this.state.data,
-              type: 'scattergl',
+              type: 'scatter',
             },
           ]}
           config={{
@@ -92,16 +91,18 @@ class Chart extends React.Component {
           layout={{
             yaxis: {
               fixedrange: true,
+              range: [this.props.min, this.props.max],
             },
             xaxis: {
               fixedrange: true,
             },
-            autosize: true,
+            // autosize: true,
             margin: {
-              l: 20,
-              r: 20,
-              b: 20,
-              t: 20,
+              l: 40,
+              r: 40,
+              b: 40,
+              t: 40,
+              pad: 2,
             },
           }}
           style={{ width: '100%', height: 300 }}

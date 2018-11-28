@@ -20,7 +20,7 @@ class App extends Component {
     return (
       <MuiThemeProvider theme={theme}>
         <SimpleAppBar />
-        <Chart />
+        <Chart min={0} max={600} windowSize={500} />
       </MuiThemeProvider>
     )
   }
