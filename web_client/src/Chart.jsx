@@ -8,8 +8,6 @@ const PaperStyle = {
   padding: '20px 40px',
 }
 
-const WS_URL = 'ws://localhost:8000'
-
 const addAxisData = (dataAxis, windowData, windowSize) =>
   [].concat(
     dataAxis.length > windowSize
@@ -17,6 +15,7 @@ const addAxisData = (dataAxis, windowData, windowSize) =>
       : dataAxis,
     windowData,
   )
+
 class Chart extends React.Component {
   constructor(props) {
     super(props)
@@ -31,51 +30,45 @@ class Chart extends React.Component {
     }
   }
 
-  ws = new WebSocket(WS_URL)
+  componentWillReceiveProps(nextProps) {
+    this.setState(prevState => ({
+      ...prevState,
+      windowDataX: [...prevState.windowDataX, nextProps.data.x],
+      windowDataY: [...prevState.windowDataY, nextProps.data.y],
+      newData: 1,
+    }))
+  }
 
   componentDidMount() {
     setInterval(() => this.state.newData && this.addDataToPlot(), this.props.windowSize)
-    this.ws.onopen = () => {
-      console.log('connected')
-    }
-
-    this.ws.onmessage = evt => {
-      // on receiving a message, add it to the list of messages
-      try {
-        this.setState(prevState => ({
-          ...prevState,
-          windowDataX: [...prevState.windowDataX, new Date()],
-          windowDataY: [...prevState.windowDataY, JSON.parse(evt.data).y],
-          newData: 1,
-        }))
-      } catch (e) {
-        console.log(e)
-      }
-    }
-
-    this.ws.onclose = () => {
-      console.log('disconnected')
-      // automatically try to reconnect on connection loss
-      this.setState({ ws: new WebSocket(WS_URL) })
-    }
   }
 
-  addDataToPlot = () =>
-    this.setState(prevState => ({
+  addDataToPlot = () => {
+    this.setState(() => ({
       windowDataX: [],
       windowDataY: [],
       newData: 0,
       data: {
-        x: addAxisData(prevState.data.x, prevState.windowDataY, this.props.windowSize),
-        y: addAxisData(prevState.data.y, prevState.windowDataY, this.props.windowSize),
+        x: [].concat(
+          this.state.data.x.length > this.props.windowSize
+            ? this.state.data.x.filter((_, index) => index > this.state.windowDataX.length)
+            : this.state.data.x,
+          this.state.windowDataX,
+        ),
+        y: [].concat(
+          this.state.data.y.length > this.props.windowSize
+            ? this.state.data.y.filter((_, index) => index > this.state.windowDataX.length)
+            : this.state.data.y,
+          this.state.windowDataY,
+        ),
       },
     }))
-
+  }
   render() {
     return (
       <Paper style={PaperStyle}>
         <Typography variant="h6" style={{ paddingBottom: 5 }} color="textSecondary">
-          Signal
+          {this.props.title}
         </Typography>
         <Plot
           data={[
@@ -96,7 +89,7 @@ class Chart extends React.Component {
             xaxis: {
               fixedrange: true,
             },
-            // autosize: true,
+            autosize: (this.props.min && this.props.max) || true,
             margin: {
               l: 40,
               r: 40,
