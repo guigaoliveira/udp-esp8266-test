@@ -4,17 +4,12 @@
 
 WiFiUDP udp;
 
-int random(int min, int max)
-{
-  return min + (rand() % static_cast<int>(max - min + 1));
-}
-
 void send()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
     Serial.println("Servidor udp conectado com o cliente esp8266, valor enviado: ");
-    String msg = "{\"y\":" + String(random(1, 10)) + "}";
+    String msg = "{\"y\":" + String(analogRead(A0)) + "}";
     Serial.println(msg);
     udp.beginPacket("10.7.227.121", 41234);
     udp.println(msg);
@@ -36,7 +31,7 @@ void send()
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
-
+  pinMode(A0, INPUT);
   digitalWrite(LED_BUILTIN, 0);
   Serial.begin(9600);
   Serial.setDebugOutput(true);
