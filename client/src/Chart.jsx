@@ -23,19 +23,29 @@ class Chart extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState(prevState => ({
-      ...prevState,
-      windowDataX: [...prevState.windowDataX, nextProps.data.x],
-      windowDataY: [...prevState.windowDataY, nextProps.data.y],
-      newData: 1,
-    }))
+    const isNewData =
+      !this.state.newData &&
+      nextProps.data.x &&
+      nextProps.data.x.length &&
+      nextProps.data.y &&
+      nextProps.data.y.length
+
+    if (isNewData) {
+      this.setState(prevState => ({
+        ...prevState,
+        windowDataX: [].concat(prevState.windowDataX, nextProps.data.x),
+        windowDataY: [].concat(prevState.windowDataY, nextProps.data.y),
+        newData: 1,
+      }))
+    }
   }
 
-  componentDidMount() {
-    setInterval(() => this.state.newData && this.addDataToPlot(), this.props.windowSize)
+  shouldComponentUpdate() {
+    return !!this.state.newData && this.addDataToPlot()
   }
 
   addDataToPlot = () => {
+    const winLenght = this.state.windowDataY.length
     this.setState(() => ({
       windowDataX: [],
       windowDataY: [],
@@ -43,18 +53,19 @@ class Chart extends React.Component {
       data: {
         x: [].concat(
           this.state.data.x.length > this.props.windowSize
-            ? this.state.data.x.filter((_, index) => index > this.state.windowDataX.length)
+            ? this.state.data.x.filter((_, index) => index > winLenght)
             : this.state.data.x,
           this.state.windowDataX,
         ),
         y: [].concat(
           this.state.data.y.length > this.props.windowSize
-            ? this.state.data.y.filter((_, index) => index > this.state.windowDataX.length)
+            ? this.state.data.y.filter((_, index) => index > winLenght)
             : this.state.data.y,
           this.state.windowDataY,
         ),
       },
     }))
+    return true
   }
   render() {
     return (
@@ -66,29 +77,19 @@ class Chart extends React.Component {
           data={[
             {
               ...this.state.data,
-              type: 'scatter',
+              type: 'scattergl',
+              mode: 'markers',
             },
           ]}
-          config={{
-            displayModeBar: false,
-            displaylogo: false,
-          }}
+          config={{ displayModeBar: false, displaylogo: false }}
           layout={{
             yaxis: {
               fixedrange: true,
               range: [this.props.min, this.props.max],
             },
-            xaxis: {
-              fixedrange: true,
-            },
+            xaxis: { fixedrange: true },
             autosize: (this.props.min && this.props.max) || true,
-            margin: {
-              l: 40,
-              r: 40,
-              b: 40,
-              t: 40,
-              pad: 2,
-            },
+            margin: { l: 40, r: 40, b: 40, t: 40, pad: 2 },
           }}
           style={{ width: '100%', height: 300 }}
           useResizeHandler={true}
@@ -98,4 +99,4 @@ class Chart extends React.Component {
   }
 }
 
-export default Chart
+export default React.memo(Chart)

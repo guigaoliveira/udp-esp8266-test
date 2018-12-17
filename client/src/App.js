@@ -34,10 +34,12 @@ class App extends Component {
       try {
         const msg = JSON.parse(evt.data)
         msg.tag &&
-          this.tags.includes(msg.tag) &&
+          this.tags.indexOf(msg.tag) !== -1 &&
+          msg.x &&
+          msg.y &&
           this.setState(() => ({
-            [msg.tag || 'data']: {
-              x: new Date(),
+            [msg.tag]: {
+              x: msg.x.map(item => new Date(item)),
               y: msg.y,
             },
           }))
@@ -57,11 +59,11 @@ class App extends Component {
     return (
       <MuiThemeProvider theme={theme}>
         <SimpleAppBar />
-        <Chart min={400} max={500} windowSize={500} title="EMG" data={this.state.emg || {}} />
-        <Chart min={-15} max={15} windowSize={500} title="MOVIMENTO" data={this.state.mov || {}} />
+        <Chart windowSize={500} title="EMG" data={this.state.emg || {}} />
+        <Chart windowSize={500} title="MOVIMENTO" data={this.state.mov || {}} />
       </MuiThemeProvider>
     )
   }
 }
 
-export default App
+export default React.memo(App)

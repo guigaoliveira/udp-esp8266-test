@@ -4,7 +4,7 @@ const udpServer = dgram.createSocket('udp4')
 
 const WS_PORT = 8000
 
-const UDP_PORT = 41234
+const UDP_PORT = 41235
 
 const wss = new WebSocket.Server({
   port: WS_PORT,
